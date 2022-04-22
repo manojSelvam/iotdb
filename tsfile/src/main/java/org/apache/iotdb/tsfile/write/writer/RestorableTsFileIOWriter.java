@@ -79,7 +79,8 @@ public class RestorableTsFileIOWriter extends TsFileIOWriter {
       logger.debug("{} is opened.", file.getName());
     }
     this.file = file;
-    this.out = FSFactoryProducer.getFileOutputFactory().getTsFileOutput(file.getPath(), true);
+    this.tsFileOutput =
+        FSFactoryProducer.getFileOutputFactory().getTsFileOutput(file.getPath(), true);
 
     // file doesn't exist
     if (file.length() == 0) {
@@ -98,16 +99,16 @@ public class RestorableTsFileIOWriter extends TsFileIOWriter {
         if (truncatedSize == TsFileCheckStatus.COMPLETE_FILE) {
           crashed = false;
           canWrite = false;
-          out.close();
+          tsFileOutput.close();
         } else if (truncatedSize == TsFileCheckStatus.INCOMPATIBLE_FILE) {
-          out.close();
+          tsFileOutput.close();
           throw new NotCompatibleTsFileException(
               String.format("%s is not in TsFile format.", file.getAbsolutePath()));
         } else {
           crashed = true;
           canWrite = true;
           // remove broken data
-          out.truncate(truncatedSize);
+          tsFileOutput.truncate(truncatedSize);
         }
       }
     }
@@ -118,7 +119,8 @@ public class RestorableTsFileIOWriter extends TsFileIOWriter {
       logger.debug("{} is opened.", file.getName());
     }
     this.file = file;
-    this.out = FSFactoryProducer.getFileOutputFactory().getTsFileOutput(file.getPath(), true);
+    this.tsFileOutput =
+        FSFactoryProducer.getFileOutputFactory().getTsFileOutput(file.getPath(), true);
 
     // file doesn't exist
     if (file.length() == 0) {
@@ -137,9 +139,9 @@ public class RestorableTsFileIOWriter extends TsFileIOWriter {
         if (truncatedSize == TsFileCheckStatus.COMPLETE_FILE) {
           crashed = false;
           canWrite = false;
-          out.close();
+          tsFileOutput.close();
         } else if (truncatedSize == TsFileCheckStatus.INCOMPATIBLE_FILE) {
-          out.close();
+          tsFileOutput.close();
           throw new NotCompatibleTsFileException(
               String.format("%s is not in TsFile format.", file.getAbsolutePath()));
         } else {
@@ -147,7 +149,7 @@ public class RestorableTsFileIOWriter extends TsFileIOWriter {
           canWrite = true;
           // remove broken data
           if (truncate) {
-            out.truncate(truncatedSize);
+            tsFileOutput.truncate(truncatedSize);
           }
         }
       }

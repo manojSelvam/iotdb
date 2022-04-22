@@ -21,6 +21,7 @@ package org.apache.iotdb.tsfile.common.constant;
 public class TsFileConstant {
 
   public static final String TSFILE_SUFFIX = ".tsfile";
+  public static final String INDEX_SUFFIX = ".index";
   public static final String TSFILE_HOME = "TSFILE_HOME";
   public static final String TSFILE_CONF = "TSFILE_CONF";
   public static final String PATH_ROOT = "root";
