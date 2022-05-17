@@ -19,6 +19,7 @@
 
 package org.apache.iotdb.tsfile.write.writer;
 
+import org.apache.iotdb.tsfile.common.constant.TsFileConstant;
 import org.apache.iotdb.tsfile.exception.NotCompatibleTsFileException;
 import org.apache.iotdb.tsfile.file.metadata.ChunkGroupMetadata;
 import org.apache.iotdb.tsfile.file.metadata.ChunkMetadata;
@@ -81,6 +82,9 @@ public class RestorableTsFileIOWriter extends TsFileIOWriter {
     this.file = file;
     this.tsFileOutput =
         FSFactoryProducer.getFileOutputFactory().getTsFileOutput(file.getPath(), true);
+    this.indexFileOutput =
+        FSFactoryProducer.getFileOutputFactory()
+            .getTsFileOutput(file.getPath() + TsFileConstant.INDEX_SUFFIX, false);
 
     // file doesn't exist
     if (file.length() == 0) {
@@ -121,6 +125,9 @@ public class RestorableTsFileIOWriter extends TsFileIOWriter {
     this.file = file;
     this.tsFileOutput =
         FSFactoryProducer.getFileOutputFactory().getTsFileOutput(file.getPath(), true);
+    this.indexFileOutput =
+        FSFactoryProducer.getFileOutputFactory()
+            .getTsFileOutput(file.getPath() + TsFileConstant.INDEX_SUFFIX, false);
 
     // file doesn't exist
     if (file.length() == 0) {

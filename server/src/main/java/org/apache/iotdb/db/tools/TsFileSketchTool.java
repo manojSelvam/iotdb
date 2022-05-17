@@ -20,6 +20,7 @@
 package org.apache.iotdb.db.tools;
 
 import org.apache.iotdb.tsfile.common.conf.TSFileConfig;
+import org.apache.iotdb.tsfile.common.constant.TsFileConstant;
 import org.apache.iotdb.tsfile.file.MetaMarker;
 import org.apache.iotdb.tsfile.file.header.ChunkGroupHeader;
 import org.apache.iotdb.tsfile.file.header.PageHeader;
@@ -96,6 +97,7 @@ public class TsFileSketchTool {
     long length = FSFactoryProducer.getFSFactory().getFile(filename).length();
     printlnBoth(
         pw, "-------------------------------- TsFile Sketch --------------------------------");
+    printlnBoth(pw, "================================ Data File ================================");
     printlnBoth(pw, "file path: " + filename);
     printlnBoth(pw, "file length: " + length);
 
@@ -119,6 +121,14 @@ public class TsFileSketchTool {
     // print timeseries index
     printTimeseriesIndex(timeseriesMetadataMap);
 
+    printlnBoth(pw, String.format("%20s", length) + "|\tEND of TsFile");
+    printlnBoth(pw, "================================ Index File ================================");
+    String indexFileName = filename + TsFileConstant.INDEX_SUFFIX;
+    printlnBoth(pw, "file path: " + indexFileName);
+    printlnBoth(
+        pw, "file length: " + FSFactoryProducer.getFSFactory().getFile(indexFileName).length());
+    printlnBoth(pw, "");
+
     MetadataIndexNode metadataIndexNode = tsFileMetaData.getMetadataIndex();
     TreeMap<Long, MetadataIndexNode> metadataIndexNodeMap = new TreeMap<>();
     List<String> treeOutputStringBuffer = new ArrayList<>();
@@ -130,14 +140,10 @@ public class TsFileSketchTool {
     // print TsFile Metadata
     printTsFileMetadata(tsFileMetaData);
 
-    printlnBoth(pw, String.format("%20s", length) + "|\tEND of TsFile");
-    printlnBoth(
-        pw,
-        "---------------------------- IndexOfTimerseriesIndex Tree -----------------------------");
     // print index tree
-    for (String str : treeOutputStringBuffer) {
-      printlnBoth(pw, str);
-    }
+    //    for (String str : treeOutputStringBuffer) {
+    //      printlnBoth(pw, str);
+    //    }
     printlnBoth(
         pw,
         "---------------------------------- TsFile Sketch End ----------------------------------");
@@ -355,7 +361,7 @@ public class TsFileSketchTool {
             pw,
             String.format("%20s", "") + "|\t\t[" + entry.getValue().right.getStatistics() + "] ");
       }
-      printlnBoth(pw, splitStr);
+      //      printlnBoth(pw, splitStr);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -466,14 +472,23 @@ public class TsFileSketchTool {
             if (i != metadataIndexListSize - 1) {
               endOffset = metadataIndexNode.getChildren().get(i + 1).getOffset();
             }
-            ByteBuffer nextBuffer =
-                readData(metadataIndexNode.getChildren().get(i).getOffset(), endOffset);
+            ByteBuffer nextBuffer;
+            MetadataIndexNodeType metadataIndexType = metadataIndexNode.getNodeType();
+            if (metadataIndexType.equals(MetadataIndexNodeType.LEAF_MEASUREMENT)) {
+              nextBuffer = readData(metadataIndexNode.getChildren().get(i).getOffset(), endOffset);
+            } else {
+              nextBuffer =
+                  readData(
+                      indexFileInput,
+                      metadataIndexNode.getChildren().get(i).getOffset(),
+                      endOffset);
+            }
             generateMetadataIndexWithOffset(
                 metadataIndexNode.getChildren().get(i).getOffset(),
                 metadataIndexNode.getChildren().get(i),
                 nextBuffer,
                 deviceId,
-                metadataIndexNode.getNodeType(),
+                metadataIndexType,
                 timeseriesMetadataMap,
                 needChunkMetadata);
           }
@@ -497,7 +512,7 @@ public class TsFileSketchTool {
         if (i != metadataIndexEntryList.size() - 1) {
           endOffset = metadataIndexEntryList.get(i + 1).getOffset();
         }
-        ByteBuffer buffer = readData(metadataIndexEntry.getOffset(), endOffset);
+        ByteBuffer buffer = readData(indexFileInput, metadataIndexEntry.getOffset(), endOffset);
         generateMetadataIndexWithOffset(
             metadataIndexEntry.getOffset(),
             metadataIndexEntry,

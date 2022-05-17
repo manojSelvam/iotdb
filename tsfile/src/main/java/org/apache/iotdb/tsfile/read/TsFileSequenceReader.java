@@ -1894,7 +1894,7 @@ public class TsFileSequenceReader implements AutoCloseable {
    */
   public MetadataIndexNode getMetadataIndexNode(long startOffset, long endOffset)
       throws IOException {
-    return MetadataIndexNode.deserializeFrom(readData(startOffset, endOffset));
+    return MetadataIndexNode.deserializeFrom(readData(indexFileInput, startOffset, endOffset));
   }
 
   /**
